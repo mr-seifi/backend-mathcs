@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from .models import JoinRequest
+from .models import JoinRequest, ConnectionRequest
 from .serializers import JoinRequestSerializer
 from rest_framework import status
 from account.models import Group
@@ -67,6 +67,59 @@ class JoinRequestAcceptApi(APIView):
             group.users.add(join_request.user)
             group.save()
             join_request.delete()
+
+        except Exception as ex:
+            return Response({"error": {"enMessage": "Bad request!"}},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'successfull'})
+
+
+class ConnectionRequestApi(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.owner.all():
+            return Response({"error": {"enMessage": "Bad request!"}},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response({'requests': [
+            {
+                'connectionRequestId': connection_request.id,
+                'groupId': connection_request.source_group.id,
+                'sent': connection_request.sent.timestamp()
+            } for connection_request in request.user.owner.first().received_request.all()
+        ]})
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.owner.all():
+            return Response({"error": {"enMessage": "Bad request!"}},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            src_group_id = request.user.owner.first().id
+            dest_group_id = request.data.get('groupId')
+            connection_request = ConnectionRequest.objects.create(source_group_id=src_group_id,
+                                                                  dest_group_id=dest_group_id)
+        except Exception as ex:
+            return Response({"error": {"enMessage": "Bad request!"}},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'successfull'})
+
+
+class ConnectionRequestAcceptApi(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.owner.all():
+            return Response({"error": {"enMessage": "Bad request!"}},
+                            status=status.HTTP_400_BAD_REQUEST)
+        try:
+            src_group_id = request.data.get('groupId')
+            dest_group: Group = request.user.owner.first()
+            dest_group.received_request.filter(dest_group_id=src_group_id).delete()
+            dest_group.connected_groups.add(src_group_id)
+            dest_group.save()
+            src_group = Group.objects.get(pk=src_group_id)
+            src_group.connected_groups.add(dest_group.id)
+            src_group.save()
 
         except Exception as ex:
             return Response({"error": {"enMessage": "Bad request!"}},

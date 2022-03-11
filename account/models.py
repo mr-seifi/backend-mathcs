@@ -100,6 +100,9 @@ class Group(models.Model):
     users = models.ManyToManyField(User,
                                    blank=True,
                                    related_name='member')
+    connected_groups = models.ManyToManyField("self",
+                                              blank=True,
+                                              related_name='connected_groups')
 
     def __str__(self):
         return self.name

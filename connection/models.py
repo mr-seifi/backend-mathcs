@@ -15,3 +15,17 @@ class JoinRequest(models.Model):
 
     class Meta:
         ordering = ('-date', )
+
+
+class ConnectionRequest(models.Model):
+
+    source_group = models.ForeignKey(Group,
+                                     on_delete=models.CASCADE,
+                                     related_name='sent_request')
+    dest_group = models.ForeignKey(Group,
+                                   on_delete=models.CASCADE,
+                                   related_name='received_request')
+    sent = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-sent', )
