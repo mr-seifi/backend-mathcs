@@ -85,3 +85,13 @@ class User(AbstractBaseUser):
     @property
     def is_admin(self):
         return self.admin
+
+
+class Group(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    admin = models.ForeignKey(User,
+                              on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name

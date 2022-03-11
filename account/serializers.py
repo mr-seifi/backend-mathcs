@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from account.models import User
+from account.models import User, Group
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
@@ -45,3 +45,16 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['is_staff'] = user.is_staff
 
         return token
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ('id', 'name', 'description',)
+
+    def create(self, validated_data):
+        group = Group.objects.create(name=validated_data['name'],
+                                     description=validated_data['description'],
+                                     admin=validated_data['user'])
+
+        return group
