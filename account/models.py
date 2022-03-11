@@ -56,9 +56,7 @@ class User(AbstractBaseUser):
         unique=True
     )
 
-    created = models.DateField(auto_now_add=True)
-    updated = models.DateField(blank=True,
-                               null=True)
+    created = models.DateTimeField(auto_now_add=True)
 
     is_active = models.BooleanField(default=True)
     staff = models.BooleanField(default=False)
