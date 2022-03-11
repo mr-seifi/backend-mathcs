@@ -1,15 +1,12 @@
-from rest_framework import  serializers
-from rest_framework.permissions import IsAuthenticated
-from django.db import models
-from django.contrib.auth import authenticate
-from django.contrib.auth.hashers import make_password
+from rest_framework import serializers
 from account.models import User
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('name', 'email', 'password', )
+        fields = ('name', 'email', 'password',)
         extra_kwargs = {
             'password': {'write_only': True},
         }
@@ -25,4 +22,26 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ('email', 'password',)
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    # default_error_messages = {'no_active_account': 'CUSTOM ERROR MESSAGE HERE'}  # TODO: Default error message
+
+    def validate(self, attrs):
+        data = super(CustomTokenObtainPairSerializer, self).validate(attrs)
+
+        data['token'] = data.pop('access')
+        data.pop('refresh')
+        data['message'] = 'successfull'
+
+        return data
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['name'] = user.name
+        token['email'] = user.email
+        token['is_staff'] = user.is_staff
+
+        return token
