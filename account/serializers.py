@@ -56,5 +56,6 @@ class GroupSerializer(serializers.ModelSerializer):
         group = Group.objects.create(name=validated_data['name'],
                                      description=validated_data['description'],
                                      admin=validated_data['user'])
+        group.users.add(validated_data['user'])
 
         return group

@@ -49,11 +49,16 @@ class User(AbstractBaseUser):
         verbose_name='full_name',
         max_length=255
     )
+
     email = models.EmailField(
         verbose_name='email address',
         max_length=255,
         unique=True
     )
+
+    created = models.DateField(auto_now_add=True)
+    updated = models.DateField(blank=True,
+                               null=True)
 
     is_active = models.BooleanField(default=True)
     staff = models.BooleanField(default=False)
@@ -91,7 +96,11 @@ class Group(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     admin = models.ForeignKey(User,
-                              on_delete=models.CASCADE)
+                              on_delete=models.CASCADE,
+                              related_name='admin_group')
+    users = models.ManyToManyField(User,
+                                   blank=True,
+                                   related_name='groups')
 
     def __str__(self):
         return self.name

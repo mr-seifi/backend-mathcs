@@ -26,3 +26,12 @@ class GroupApi(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user)
         return Response({'group': {'id': serializer.data['id']}, 'message': 'successfull'}, status=status.HTTP_201_CREATED)
+
+#
+# class GroupApi(APIView):
+#     permission_classes = [IsAuthenticated]
+#
+#     def get(self, request, format=None):
+#         groups = Group.objects.all()
+#         serializer = GroupSerializer(groups, many=True)
+#         return Response({'groups': serializer.data})
