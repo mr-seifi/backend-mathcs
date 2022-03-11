@@ -27,7 +27,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     # default_error_messages = {'no_active_account': 'CUSTOM ERROR MESSAGE HERE'}  # TODO: Default error message
-
+    # TODO: Fix Token Register
     def validate(self, attrs):
         data = super(CustomTokenObtainPairSerializer, self).validate(attrs)
 
@@ -37,20 +37,11 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         return data
 
-    @classmethod
-    def get_token(cls, user):
-        token = super().get_token(user)
-        token['name'] = user.name
-        token['email'] = user.email
-        token['is_staff'] = user.is_staff
-
-        return token
-
 
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ('id', 'name', 'description',)
+        fields = ('id', 'name', 'description', 'admin', 'users', )
 
     def create(self, validated_data):
         group = Group.objects.create(name=validated_data['name'],

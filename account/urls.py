@@ -1,10 +1,10 @@
-from django.urls import path, include
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
-from .views import CustomTokenObtainPairView, GroupApi
-from .api import RegisterApi, LoginApi
+from django.urls import path
+from .views import CustomTokenObtainPairView, GroupApi, MyGroupApi
+from .api import RegisterApi
 
 urlpatterns = [
       path('auth/signup/', RegisterApi.as_view()),
       path('auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
-      path('groups/', GroupApi.as_view(), name='groups')
+      path('groups/', GroupApi.as_view(), name='groups'),
+      path('groups/my/', MyGroupApi.as_view(), name='my_groups')
 ]

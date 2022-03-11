@@ -97,10 +97,11 @@ class Group(models.Model):
     description = models.TextField()
     admin = models.ForeignKey(User,
                               on_delete=models.CASCADE,
-                              related_name='admin_group')
+                              related_name='owner',
+                              blank=True)
     users = models.ManyToManyField(User,
                                    blank=True,
-                                   related_name='groups')
+                                   related_name='member')
 
     def __str__(self):
         return self.name
