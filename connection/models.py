@@ -29,3 +29,30 @@ class ConnectionRequest(models.Model):
 
     class Meta:
         ordering = ('-sent', )
+
+
+class Message(models.Model):
+
+    text = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-created', )
+
+
+class Chat(models.Model):
+
+    source_user = models.ForeignKey(User,
+                                    on_delete=models.CASCADE,
+                                    related_name='sent_chats')
+    dest_user = models.ForeignKey(User,
+                                  on_delete=models.CASCADE,
+                                  related_name='received_chats')
+    name = models.CharField(max_length=255)
+    messages = models.ManyToManyField(Message,
+                                      blank=True,
+                                      related_name='chat')
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-created', )

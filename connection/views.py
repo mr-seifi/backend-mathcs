@@ -1,10 +1,10 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from .models import JoinRequest, ConnectionRequest
+from .models import JoinRequest, ConnectionRequest, Chat, Message
 from .serializers import JoinRequestSerializer
 from rest_framework import status
-from account.models import Group
+from account.models import Group, User
 
 
 class JoinRequestApi(APIView):
@@ -125,3 +125,62 @@ class ConnectionRequestAcceptApi(APIView):
             return Response({"error": {"enMessage": "Bad request!"}},
                             status=status.HTTP_400_BAD_REQUEST)
         return Response({'message': 'successfull'})
+
+
+class ChatApi(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            return Response({'chats': [
+                {
+                    'userId': chat.source_user.id if chat.source_user != request.user else chat.dest_user.id,
+                    'name': chat.name
+                } for chat in (request.user.sent_chats.all() | request.user.received_chats.all()).distinct()
+            ]})
+        except Exception as ex:
+            return Response({"error": {"enMessage": "Bad request!"}},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
+class MessageApi(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            user_id = kwargs.get('user_id')
+            return Response({'chats': [
+                {
+                    'message': messages.text,
+                    'date': messages.created,
+                    'sentby': messages.chat.source_user.id
+                } for messages in Message.objects.filter(chat__source_user=request.user,
+                                                         chat__dest_user_id=user_id)
+            ]})
+        except Exception as ex:
+            return Response({"error": {"enMessage": "Bad request!"}},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            user_id = kwargs.get('user_id')
+            dest_user = User.objects.get(pk=user_id)
+            chat = Chat.objects.filter(source_user=request.user,
+                                       dest_user_id=user_id).first()
+            if not chat:
+                if request.user.member.first().id in dest_user.member.first().connected_groups.all():
+                    chat = Chat.objects.create(source_user=request.user,
+                                               dest_user=dest_user,
+                                               name='default')
+                else:
+                    raise Exception()
+
+            message = Message.objects.create(text=request.data.get('message'))
+            chat.messages.add(message.id)
+            chat.save()
+
+        except Exception as ex:
+            return Response({"error": {"enMessage": "Bad request!"}},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'successfull'})
+

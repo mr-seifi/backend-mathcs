@@ -89,6 +89,9 @@ class User(AbstractBaseUser):
     def is_admin(self):
         return self.admin
 
+    class Meta:
+        ordering = ('-created', )
+
 
 class Group(models.Model):
     name = models.CharField(max_length=255)
